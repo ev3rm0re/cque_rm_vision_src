@@ -12,7 +12,11 @@ class RmArmorPositionNode(Node):
             '/tracker/info',
             self.tracker_info_callback,
             10)
-        self.serialport = serialPort('/dev/ttyUSB0', 115200)
+        self.device_name = self.declare_parameter('device_name', '/dev/ttyUSB0').get_parameter_value().string_value
+        self.baud_rate = self.declare_parameter('baud_rate', 115200).get_parameter_value().integer_value
+        self.parity = self.declare_parameter('parity', 'N').get_parameter_value().string_value
+        self.stop_bits = float(self.declare_parameter('stop_bits', 1).get_parameter_value().integer_value)
+        self.serialport = serialPort(self.device_name, self.baud_rate, self.parity, self.stop_bits)
 
     def tracker_info_callback(self, msg):
         x = msg.position.x
@@ -24,31 +28,33 @@ class RmArmorPositionNode(Node):
         self.serialport.send(b'%f\n%f\r\n' % (yaw, pitch))
 
     def __del__(self):
-        self.get_logger().info('Closing serial port...')
         self.serialport.close()
+        self.get_logger().info('Serial port closed')
 
 class serialPort:
-    def __init__(self, port, baudrate):
-        self.port = port
-        self.baudrate = baudrate
-        self.ser = serial.Serial(port, baudrate)
+    def __init__(self, port, baudrate, parity, stopbits):
+        try:
+            self.ser = serial.Serial(port=port, baudrate=baudrate,parity=parity, stopbits=stopbits)
+        except serial.SerialException:
+            self.ser = None
+            print('Serial port open failed')
 
     def send(self, data):
-        self.ser.write(data)
+        if self.ser is not None:
+            self.ser.write(data)
 
     def read(self):
-        return self.ser.read()
+        if self.ser is not None:
+            return self.ser.read()
 
     def close(self):
-        self.ser.close()
+        if self.ser is not None:
+            self.ser.close()
 
 def main():
     rclpy.init()
     node = RmArmorPositionNode()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        rclpy.shutdown()
-
-if __name__ == '__main__':
-    main()
+    except:
+        node.destroy_node()
