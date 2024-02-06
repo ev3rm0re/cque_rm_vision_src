@@ -41,7 +41,6 @@ class serialPort:
         except serial.SerialException as e:
             self.get_logger().error('Serial port open failed: %s' % e)
             self.ser = None
-            print('Serial port open failed')
 
     def send(self, data):
         if self.ser is not None:
