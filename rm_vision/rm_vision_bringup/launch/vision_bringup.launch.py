@@ -57,24 +57,11 @@ def generate_launch_description():
         executable='rm_armor_position_node',
         name='armor_position',
         output='both',
-        emulate_tty=True,
         parameters=[node_params],
         on_exit=Shutdown(),
         ros_arguments=['--ros-args', '--log-level',
-                       'rm_armor_position_node:='+launch_params['serial_log_level']],
+                       'armor_position:='+launch_params['serial_log_level']],
     )
-
-    # serial_driver_node = Node(
-    #     package='rm_serial_driver',
-    #     executable='rm_serial_driver_node',
-    #     name='serial_driver',
-    #     output='both',
-    #     emulate_tty=True,
-    #     parameters=[node_params],
-    #     on_exit=Shutdown(),
-    #     ros_arguments=['--ros-args', '--log-level',
-    #                    'serial_driver:='+launch_params['serial_log_level']],
-    # )
 
     delay_serial_node = TimerAction(
         period=1.5,

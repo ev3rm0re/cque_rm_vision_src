@@ -7,16 +7,19 @@ from auto_aim_interfaces.msg import TrackerInfo
 class RmArmorPositionNode(Node):
     def __init__(self):
         super().__init__('rm_armor_position_node')
-        self.subscription = self.create_subscription(
-            TrackerInfo,
-            '/tracker/info',
-            self.tracker_info_callback,
-            10)
-        self.device_name = self.declare_parameter('device_name', '/dev/ttyUSB0').get_parameter_value().string_value
-        self.baud_rate = self.declare_parameter('baud_rate', 115200).get_parameter_value().integer_value
-        self.parity = self.declare_parameter('parity', 'N').get_parameter_value().string_value
-        self.stop_bits = float(self.declare_parameter('stop_bits', 1).get_parameter_value().integer_value)
-        self.serialport = serialPort(self.device_name, self.baud_rate, self.parity, self.stop_bits)
+        self.subscription = self.create_subscription(TrackerInfo, '/tracker/info', self.tracker_info_callback, 10)
+
+        self.declare_parameter('device_name', '/dev/ttyUSB0')
+        self.declare_parameter('baud_rate', 115200)
+        self.declare_parameter('parity', 'N')
+        self.declare_parameter('stop_bits', 1)
+
+        device_name = self.get_parameter('device_name').get_parameter_value().string_value
+        baud_rate = self.get_parameter('baud_rate').get_parameter_value().integer_value
+        parity = self.get_parameter('parity').get_parameter_value().string_value
+        stop_bits = self.get_parameter('stop_bits').get_parameter_value().integer_value
+        
+        self.serialport = serialPort(device_name, baud_rate, parity, stop_bits)
 
     def tracker_info_callback(self, msg):
         x = msg.position.x
@@ -35,7 +38,8 @@ class serialPort:
     def __init__(self, port, baudrate, parity, stopbits):
         try:
             self.ser = serial.Serial(port=port, baudrate=baudrate,parity=parity, stopbits=stopbits)
-        except serial.SerialException:
+        except serial.SerialException as e:
+            self.get_logger().error('Serial port open failed: %s' % e)
             self.ser = None
             print('Serial port open failed')
 
