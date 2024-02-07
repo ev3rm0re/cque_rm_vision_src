@@ -44,7 +44,7 @@ class PyserialNode(Node):
         pitch = math.atan2(z, x)
         self.pitchs.append(pitch)
         if self.count % 6 == 0:
-            # struct 16进制发送，大端模式，高位在前
+            # struct 16进制发送，大端模式，高位在前，填充53个字节，构成64字节的数据帧
             data = b'\xA5' + struct.pack('>ff53x', np.mean(self.yaws), np.mean(self.pitchs)) + b'\r\n'
             self.get_logger().info('yaw: {}, pitch: {}.'.format(np.mean(self.yaws), np.mean(self.pitchs)))
             self.serialport.send(data)
