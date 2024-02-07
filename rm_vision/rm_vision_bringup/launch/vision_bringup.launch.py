@@ -52,9 +52,9 @@ def generate_launch_description():
     elif (launch_params['camera'] == 'mv'):
         cam_detector = get_camera_detector_container(mv_camera_node)
 
-    armor_position_node = Node(
-        package='rm_armor_position',
-        executable='rm_armor_position_node',
+    pyserial_node = Node(
+        package='rm_pyserial',
+        executable='pyserial_node',
         name='armor_position',
         output='both',
         parameters=[node_params],
@@ -65,7 +65,7 @@ def generate_launch_description():
 
     delay_serial_node = TimerAction(
         period=1.5,
-        actions=[armor_position_node],
+        actions=[pyserial_node],
     )
 
     delay_tracker_node = TimerAction(
