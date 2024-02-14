@@ -55,12 +55,12 @@ def generate_launch_description():
     pyserial_node = Node(
         package='rm_pyserial',
         executable='pyserial_node',
-        name='armor_position',
+        name='pyserial_node',
         output='both',
         parameters=[node_params],
         on_exit=Shutdown(),
         ros_arguments=['--ros-args', '--log-level',
-                       'armor_position:='+launch_params['serial_log_level']],
+                       'pyserial_node:='+launch_params['serial_log_level']],
     )
 
     delay_serial_node = TimerAction(

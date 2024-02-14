@@ -4,7 +4,7 @@
     exposure_time: 10000
     gain: 8.0
 
-/armor_position:
+/pyserial_node:
   ros__parameters:
     device_name: /dev/ttyUSB0
     baud_rate: 115200
