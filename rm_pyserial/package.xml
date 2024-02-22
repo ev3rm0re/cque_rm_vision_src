@@ -2,10 +2,10 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rm_pyserial</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <version>0.0.1</version>
+  <description>使用pyserial控制串口的功能包</description>
   <maintainer email="ev3rm0re@163.com">ev3rm0re</maintainer>
-  <license>TODO: License declaration</license>
+  <license>GPLv3</license>
 
   <depend>rclpy</depend>
   <depend>serial</depend>
