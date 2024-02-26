@@ -10,10 +10,11 @@ from auto_aim_interfaces.msg import TrackerInfo
 class PyserialNode(Node):
     def __init__(self):
         super().__init__('pyserial_node')
-        self.count = 0
         self.yaws = []
         self.pitchs = []
+        self.recv_data = None
         self.subscription = self.create_subscription(TrackerInfo, '/tracker/info', self.tracker_info_callback, 10)
+        self.timer = self.create_timer(1.0, self.timer_callback)
         # 声明串口参数
         self.declare_parameter('device_name', '/dev/ttyUSB0')
         self.declare_parameter('baud_rate', 115200)
@@ -33,7 +34,6 @@ class PyserialNode(Node):
             sys.exit(1)
 
     def tracker_info_callback(self, msg):
-        self.count += 1
         # 获取x,y,z
         x = msg.position.x
         y = msg.position.y
@@ -43,14 +43,23 @@ class PyserialNode(Node):
         self.yaws.append(yaw)
         pitch = math.atan2(z, x)
         self.pitchs.append(pitch)
-        if self.count % 6 == 0:
+
+    def timer_callback(self):
+        if len(self.yaws) > 0 and len(self.pitchs) > 0:
             # struct 16进制发送，大端模式，高位在前，填充53个字节，构成64字节的数据帧，后面还可以加其他数据
             data = b'\xA5' + struct.pack('>ff53x', np.mean(self.yaws), np.mean(self.pitchs)) + b'\r\n'
             self.get_logger().info('yaw: {}, pitch: {}.'.format(np.mean(self.yaws), np.mean(self.pitchs)))
             self.serialport.send(data)
             self.yaws.clear()
             self.pitchs.clear()
-            self.count = 0
+        self.recv_data = self.serialport.read()
+
+        if self.recv_data is not None:
+            self.get_logger().info('recv_data: %s' % self.recv_data)
+            if self.recv_data == b'\x00':
+                self.get_logger().info('detecting red armor')
+            elif self.recv_data == b'\x01':
+                self.get_logger().info('detecting blue armor')
 
     def __del__(self):
         if self.serialport is not None:
