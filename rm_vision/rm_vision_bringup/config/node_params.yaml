@@ -4,12 +4,14 @@
     exposure_time: 10000
     gain: 8.0
 
-/pyserial_node:
+/serial_driver:
   ros__parameters:
+    timestamp_offset: 0.006
     device_name: /dev/ttyUSB0
     baud_rate: 115200
-    parity: 'N'
-    stop_bits: 1
+    flow_control: none
+    parity: none
+    stop_bits: "1"
 
 /armor_detector:
   ros__parameters:
