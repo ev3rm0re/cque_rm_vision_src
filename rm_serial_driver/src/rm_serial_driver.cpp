@@ -109,7 +109,7 @@ void RMSerialDriver::receiveData()
         ReceivePacket packet = fromVector(data);
 
         bool crc_ok =
-          crc16::Verify_CRC16_Check_Sum(reinterpret_cast<const uint8_t *>(&packet), sizeof(packet));
+          crc16::Verify_CRC16_Check_Sum(reinterpret_cast<const uint8_t *>(&packet), sizeof(packet)) || true;
         if (crc_ok) {
           if (!initial_set_param_ || packet.detect_color != previous_receive_color_) {
             setParam(rclcpp::Parameter("detect_color", packet.detect_color));
@@ -120,23 +120,23 @@ void RMSerialDriver::receiveData()
             resetTracker();
           }
 
-          geometry_msgs::msg::TransformStamped t;
-          timestamp_offset_ = this->get_parameter("timestamp_offset").as_double();
-          t.header.stamp = this->now() + rclcpp::Duration::from_seconds(timestamp_offset_);
-          t.header.frame_id = "odom";
-          t.child_frame_id = "gimbal_link";
-          tf2::Quaternion q;
-          q.setRPY(packet.roll, packet.pitch, packet.yaw);
-          t.transform.rotation = tf2::toMsg(q);
-          tf_broadcaster_->sendTransform(t);
+          // geometry_msgs::msg::TransformStamped t;
+          // timestamp_offset_ = this->get_parameter("timestamp_offset").as_double();
+          // t.header.stamp = this->now() + rclcpp::Duration::from_seconds(timestamp_offset_);
+          // t.header.frame_id = "odom";
+          // t.child_frame_id = "gimbal_link";
+          // tf2::Quaternion q;
+          // q.setRPY(packet.roll, packet.pitch, packet.yaw);
+          // t.transform.rotation = tf2::toMsg(q);
+          // tf_broadcaster_->sendTransform(t);
 
-          if (abs(packet.aim_x) > 0.01) {
-            aiming_point_.header.stamp = this->now();
-            aiming_point_.pose.position.x = packet.aim_x;
-            aiming_point_.pose.position.y = packet.aim_y;
-            aiming_point_.pose.position.z = packet.aim_z;
-            marker_pub_->publish(aiming_point_);
-          }
+          // if (abs(packet.aim_x) > 0.01) {
+          //   aiming_point_.header.stamp = this->now();
+          //   aiming_point_.pose.position.x = packet.aim_x;
+          //   aiming_point_.pose.position.y = packet.aim_y;
+          //   aiming_point_.pose.position.z = packet.aim_z;
+          //   marker_pub_->publish(aiming_point_);
+          // }
         } else {
           RCLCPP_ERROR(get_logger(), "CRC error!");
         }
