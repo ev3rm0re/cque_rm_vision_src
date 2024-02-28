@@ -52,20 +52,21 @@ def generate_launch_description():
     elif (launch_params['camera'] == 'mv'):
         cam_detector = get_camera_detector_container(mv_camera_node)
 
-    pyserial_node = Node(
-        package='rm_pyserial',
-        executable='pyserial_node',
-        name='pyserial_node',
+    serial_driver_node = Node(
+        package='rm_serial_driver',
+        executable='rm_serial_driver_node',
+        name='serial_driver',
         output='both',
+        emulate_tty=True,
         parameters=[node_params],
         on_exit=Shutdown(),
         ros_arguments=['--ros-args', '--log-level',
-                       'pyserial_node:='+launch_params['serial_log_level']],
+                       'serial_driver:='+launch_params['serial_log_level']],
     )
 
     delay_serial_node = TimerAction(
         period=1.5,
-        actions=[pyserial_node],
+        actions=[serial_driver_node],
     )
 
     delay_tracker_node = TimerAction(
