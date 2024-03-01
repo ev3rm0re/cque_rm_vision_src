@@ -47,7 +47,7 @@ struct SendPacket
   // float r1;
   // float r2;
   // float dz;
-  // uint16_t checksum = 0;
+  uint16_t checksum = 0;
 } __attribute__((packed));
 
 inline ReceivePacket fromVector(const std::vector<uint8_t> & data)
