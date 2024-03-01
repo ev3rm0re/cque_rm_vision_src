@@ -176,11 +176,15 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.id = id_unit8_map.at(msg->id);
     packet.armors_num = msg->armors_num;
     if (packet.id == 0) {
-      packet.yaw = 0.05;
+      packet.yaw = 0.0;
       packet.pitch = 0.0;
     } else {
       packet.yaw = atan2(msg->position.y, msg->position.x);
       packet.pitch = atan2(msg->position.z, msg->position.x);
+      if (abs(packet.yaw) < 0.1 && abs(packet.pitch) < 0.1) {
+        packet.yaw = 0.0;
+        packet.pitch = 0.0;
+      }
     }
     // packet.x = msg->position.x;
     // packet.y = msg->position.y;
