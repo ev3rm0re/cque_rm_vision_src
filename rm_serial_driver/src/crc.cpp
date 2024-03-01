@@ -42,16 +42,33 @@ constexpr uint16_t W_CRC_TABLE[256] = {
   */
 uint16_t Get_CRC16_Check_Sum(const uint8_t * pchMessage, uint32_t dwLength, uint16_t wCRC)
 {
-  uint8_t ch_data;
+  // uint8_t ch_data;
 
-  if (pchMessage == nullptr) return 0xFFFF;
-  while (dwLength--) {
-    ch_data = *pchMessage++;
-    (wCRC) =
-      ((uint16_t)(wCRC) >> 8) ^ W_CRC_TABLE[((uint16_t)(wCRC) ^ (uint16_t)(ch_data)) & 0x00ff];
-  }
+  // if (pchMessage == nullptr) return 0xFFFF;
+  // while (dwLength--) {
+  //   ch_data = *pchMessage++;
+  //   (wCRC) =
+  //     ((uint16_t)(wCRC) >> 8) ^ W_CRC_TABLE[((uint16_t)(wCRC) ^ (uint16_t)(ch_data)) & 0x00ff];
+  // }
 
-  return wCRC;
+  // return wCRC;
+  uint16_t crc_poly = 0xA001; //Bit sequence inversion of 0x8005
+	uint16_t data_t = 0xFFFF; //CRC register
+
+    for(uint32_t i = 0; i < dwLength; i++)
+    {
+    	data_t ^= pchMessage[i]; //8-bit data
+
+        for (uint8_t j = 0; j < 8; j++)
+        {
+            if (data_t & 0x0001)
+            	data_t = (data_t >> 1) ^ crc_poly;
+            else
+            	data_t >>= 1;
+        }
+    }
+
+    return data_t ^ 0xFFFF;
 }
 
 /**
