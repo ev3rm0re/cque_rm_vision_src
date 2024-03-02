@@ -232,6 +232,8 @@ void Detector::drawResults(cv::Mat & img)
   for (const auto & armor : armors_) {
     cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
     cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 5);
+    cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 5);
+    cv::line(img, armor.right_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
   }
 
   // Show numbers and confidence
