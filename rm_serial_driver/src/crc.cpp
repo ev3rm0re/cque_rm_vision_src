@@ -85,8 +85,8 @@ uint32_t Verify_CRC16_Check_Sum(const uint8_t * pchMessage, uint32_t dwLength)
 
   w_expected = Get_CRC16_Check_Sum(pchMessage, dwLength - 2, CRC16_INIT);
   return (
-    (w_expected & 0xff) == pchMessage[dwLength - 2] &&
-    ((w_expected >> 8) & 0xff) == pchMessage[dwLength - 1]);
+    (w_expected & 0xff) == pchMessage[dwLength - 1] &&
+    ((w_expected >> 8) & 0xff) == pchMessage[dwLength - 2]);
 }
 
 /**
@@ -103,8 +103,8 @@ void Append_CRC16_Check_Sum(uint8_t * pchMessage, uint32_t dwLength)
 
   w_crc = Get_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(pchMessage), dwLength - 2, CRC16_INIT);
 
-  pchMessage[dwLength - 2] = (uint8_t)(w_crc & 0x00ff);
-  pchMessage[dwLength - 1] = (uint8_t)((w_crc >> 8) & 0x00ff);
+  pchMessage[dwLength - 1] = (uint8_t)(w_crc & 0x00ff);
+  pchMessage[dwLength - 2] = (uint8_t)((w_crc >> 8) & 0x00ff);
 }
 
 }  // namespace crc16
