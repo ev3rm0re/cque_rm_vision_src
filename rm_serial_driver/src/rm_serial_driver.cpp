@@ -109,7 +109,7 @@ void RMSerialDriver::receiveData()
         ReceivePacket packet = fromVector(data);
 
         bool crc_ok =
-          crc16::Verify_CRC16_Check_Sum(reinterpret_cast<const uint8_t *>(&packet), sizeof(packet)) || true;
+          crc16::Verify_CRC16_Check_Sum(reinterpret_cast<const uint8_t *>(&packet), sizeof(packet));
         if (crc_ok) {
           if (!initial_set_param_ || packet.detect_color != previous_receive_color_) {
             setParam(rclcpp::Parameter("detect_color", packet.detect_color));
@@ -162,12 +162,11 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.tracking = msg->tracking;
     packet.id = id_unit8_map.at(msg->id);
     packet.armors_num = msg->armors_num;
-    if (packet.id == 0) {
-      packet.yaw = 0.05;
+    packet.yaw = atan2(msg->position.y, msg->position.x);
+    packet.pitch = atan2(msg->position.z, msg->position.x);
+    if ((abs(packet.yaw) < 0.1 && abs(packet.pitch) < 0.1) || packet.id == 0) {
+      packet.yaw = 0.0;
       packet.pitch = 0.0;
-    } else {
-      packet.yaw = atan2(msg->position.y, msg->position.x);
-      packet.pitch = atan2(msg->position.z, msg->position.x);
     }
     // packet.x = msg->position.x;
     // packet.y = msg->position.y;
