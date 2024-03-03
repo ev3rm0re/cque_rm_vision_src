@@ -18,12 +18,12 @@
     debug: true
 
     detect_color: 1
-    binary_thres: 50
+    binary_thres: 40
 
-    light.min_ratio: 0.05
-    light.max_ratio: 0.25
+    light.min_ratio: 0.01
+    light.max_ratio: 0.50
     light.max_angle: 30.0
-    armor.min_light_ratio: 0.50
+    armor.min_light_ratio: 0.30
     armor.min_small_center_distance: 1.50
     armor.max_small_center_distance: 3.50
     armor.min_large_center_distance: 3.50
