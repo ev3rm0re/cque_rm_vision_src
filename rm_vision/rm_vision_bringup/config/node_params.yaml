@@ -18,7 +18,7 @@
     debug: true
 
     detect_color: 1
-    binary_thres: 40
+    binary_thres: 80
 
     light.min_ratio: 0.01
     light.max_ratio: 0.50
