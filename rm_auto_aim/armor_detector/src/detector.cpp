@@ -229,19 +229,19 @@ void Detector::drawResults(cv::Mat & img)
   // }
 
   // Draw armors
-  for (const auto & armor : armors_) {
-    cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
-    cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 5);
-    cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 5);
-    cv::line(img, armor.right_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
-  }
+  // for (const auto & armor : armors_) {
+  //   cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
+  //   cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 5);
+  //   cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 5);
+  //   cv::line(img, armor.right_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
+  // }
 
   // Show numbers and confidence
-  for (const auto & armor : armors_) {
-    cv::putText(
-      img, armor.classfication_result, armor.left_light.top, cv::FONT_HERSHEY_SIMPLEX, 1,
-      cv::Scalar(255, 255, 255), 5);
-  }
+  // for (const auto & armor : armors_) {
+  //   cv::putText(
+  //     img, armor.classfication_result, armor.left_light.top, cv::FONT_HERSHEY_SIMPLEX, 1,
+  //     cv::Scalar(255, 255, 255), 5);
+  // }
 }
 
 }  // namespace rm_auto_aim

@@ -29,14 +29,17 @@ class SocketCom(Node):
 class VideoSave(Node):
     def __init__(self):
         super().__init__('video_save')
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('output.avi', self.fourcc, 30.0, (1280, 1024))
         self.sub = self.create_subscription(Image, '/detector/result_img', self.callback, 10)
+        self.fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        self.out = cv2.VideoWriter('output.avi', self.fourcc, 60, (1280, 1024))
 
     def callback(self, msg):
         bridge = CvBridge()
         img = bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         self.out.write(img)
+
+    def __del__(self):
+        self.out.release()
 
 def main(args=None):
     rclpy.init(args=args)
@@ -46,9 +49,12 @@ def main(args=None):
     # rclpy.shutdown()
 
     node = VideoSave()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+            pass
+    finally:
+        node.destroy_node()
 
 if __name__ == '__main__':
     main()
