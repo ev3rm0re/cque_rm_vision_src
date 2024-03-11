@@ -1,7 +1,7 @@
 /camera_node:
   ros__parameters:
     camera_info_url: package://rm_vision_bringup/config/camera_info.yaml
-    exposure_time: 10000
+    exposure_time: 7500
     gain: 8.0
 
 /serial_driver:
