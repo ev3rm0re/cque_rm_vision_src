@@ -164,7 +164,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.armors_num = msg->armors_num;
     packet.yaw = atan2(msg->position.y, msg->position.x);
     packet.distance = msg->position.x;
-    if ((abs(packet.yaw) < 0.1 || packet.id == 0) {
+    if (abs(packet.yaw) < 0.1 || packet.id == 0) {
       packet.yaw = 0.0;
     }
     // packet.x = msg->position.x;
@@ -183,6 +183,9 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     std::vector<uint8_t> data = toVector(packet);
 
     serial_driver_->port()->send(data);
+
+    RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
+
     std_msgs::msg::Float64 latency;
     latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
     RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
