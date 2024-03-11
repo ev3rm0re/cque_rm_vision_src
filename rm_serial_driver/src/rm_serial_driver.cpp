@@ -184,7 +184,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
 
     serial_driver_->port()->send(data);
 
-    RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
+    // RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
 
     std_msgs::msg::Float64 latency;
     latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
