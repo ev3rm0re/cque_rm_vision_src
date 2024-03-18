@@ -17,7 +17,7 @@
   ros__parameters:
     debug: true
 
-    detect_color: 0
+    detect_color: 1
     binary_thres: 80
 
     light.min_ratio: 0.10
