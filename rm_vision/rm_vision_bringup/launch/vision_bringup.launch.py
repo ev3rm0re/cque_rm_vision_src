@@ -64,6 +64,20 @@ def generate_launch_description():
                        'serial_driver:='+launch_params['serial_log_level']],
     )
 
+    video_save_node = Node(
+        package='rm_socket_com',
+        executable='socket_com',
+        name='video_save_node',
+        output='both',
+        emulate_tty=True,
+        on_exit=Shutdown(),
+    )
+
+    delay_video_node = TimerAction(
+        period=2.0,
+        actions=[video_save_node],
+    )
+
     delay_serial_node = TimerAction(
         period=1.5,
         actions=[serial_driver_node],
@@ -79,4 +93,5 @@ def generate_launch_description():
         cam_detector,
         delay_serial_node,
         delay_tracker_node,
+        delay_video_node,
     ])

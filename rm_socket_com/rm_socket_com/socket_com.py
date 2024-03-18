@@ -32,7 +32,7 @@ class VideoSave(Node):
         super().__init__('video_save')
         self.sub = self.create_subscription(Image, '/image_raw', self.callback, qos_profile_sensor_data)
         self.fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        self.out = cv2.VideoWriter('output.avi', self.fourcc, 30, (1280, 1024))
+        self.out = cv2.VideoWriter('output.avi', self.fourcc, 60, (1280, 1024))
 
     def callback(self, msg):
         bridge = CvBridge()
