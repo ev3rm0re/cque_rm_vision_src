@@ -72,7 +72,7 @@ namespace rm_auto_aim
     std::vector<Armor> detect(YoloDet& yolo, const cv::Mat &input);
 
     cv::Mat preprocessImage(const cv::Mat &input);
-    std::vector<Light> findLights(const cv::Mat &rbg_img, const cv::Mat &binary_img, cv::Point2f roi_tl);
+    std::vector<Light> findLights(const cv::Mat &rbg_img, const cv::Mat &binary_img, cv::Point2f roi_tl, int light_color);
     std::vector<Armor> matchLights(const std::vector<Light> &lights);
 
     // For debug usage

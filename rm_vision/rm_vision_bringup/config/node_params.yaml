@@ -1,13 +1,13 @@
 /camera_node:
   ros__parameters:
     camera_info_url: package://rm_vision_bringup/config/camera_info.yaml
-    exposure_time: 10000
+    exposure_time: 5000
     gain: 8.0
 
 /serial_driver:
   ros__parameters:
     timestamp_offset: 0.006
-    device_name: /dev/ttyACM0
+    device_name: /dev/ttyUSB0
     baud_rate: 115200
     flow_control: none
     parity: none
@@ -17,17 +17,17 @@
   ros__parameters:
     debug: true
 
-    detect_color: 1
+    detect_color: 0
     binary_thres: 80
 
-    light.min_ratio: 0.01
-    light.max_ratio: 0.50
+    light.min_ratio: 0.10
+    light.max_ratio: 0.75
     light.max_angle: 30.0
     armor.min_light_ratio: 0.30
-    armor.min_small_center_distance: 1.50
-    armor.max_small_center_distance: 3.50
-    armor.min_large_center_distance: 3.50
-    armor.max_large_center_distance: 7.50
+    armor.min_small_center_distance: 1.00
+    armor.max_small_center_distance: 2.50
+    armor.min_large_center_distance: 2.50
+    armor.max_large_center_distance: 5.00
     armor.max_angle: 30.0
 
     classifier_threshold: 0.8

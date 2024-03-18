@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include "armor_detector/detector.hpp"
 #include "armor_detector/number_classifier.hpp"
 #include "armor_detector/pnp_solver.hpp"
@@ -31,6 +32,10 @@ class ArmorDetectorNode : public rclcpp::Node
 {
 public:
   ArmorDetectorNode(const rclcpp::NodeOptions & options);
+  std::string pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
+  std::string xml_path = pkg_path + "/model/03.16_yolov8n_e50.xml";
+  std::string bin_path = pkg_path + "/model/03.16_yolov8n_e50.bin";
+  YoloDet *yolo;
 
 private:
   void imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg);

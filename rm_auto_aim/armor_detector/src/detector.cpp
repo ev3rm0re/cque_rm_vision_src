@@ -25,7 +25,7 @@ namespace rm_auto_aim
   {
     // 初始化模型，创建推理请求
     model = core.read_model(xml_path, bin_path);
-    compiled_model = core.compile_model(model, "GPU");
+    compiled_model = core.compile_model(model, "CPU");
     infer_request = compiled_model.create_infer_request();
     scale = 0.0;
   }
@@ -111,8 +111,12 @@ namespace rm_auto_aim
 
   std::vector<Armor> Detector::detect(YoloDet& yolo, const cv::Mat &input)
   {
-    ov::Tensor output = yolo.infer(input);
+    armors_.clear();
+    cv::Mat bgr_img;
+    cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
+    ov::Tensor output = yolo.infer(bgr_img);
     std::vector<std::vector<int>> results = yolo.postprocess(output, 0.5, 0.4);
+    // std::cout << "results.size() = " << results.size() << std::endl;
     for (std::vector<int> result : results)
     {
       cv::Rect roi = cv::Rect(result[0], result[1], result[2] - result[0], result[3] - result[1]);
@@ -121,19 +125,23 @@ namespace rm_auto_aim
         continue;
       }
       cv::Mat roi_image = input(roi);
+      
       cv::Point2f roi_tl = cv::Point2f(roi.x, roi.y);
       binary_img = preprocessImage(roi_image);
-      lights_ = findLights(roi_image, binary_img, roi_tl);
-      armors_ = matchLights(lights_);
+      // cv::imshow("binary_img", binary_img);
+      // cv::waitKey(1);
+      // std::cout << "result[4] = " << result[4] << std::endl;
+      lights_ = findLights(roi_image, binary_img, roi_tl, (int)result[4]);
+      std::vector<Armor> armor = matchLights(lights_);
+      armors_.insert(armors_.end(), armor.begin(), armor.end());
     }
-
-
+    
     if (!armors_.empty())
     {
       classifier->extractNumbers(input, armors_);
       classifier->classify(armors_);
     }
-
+    // std::cout << "armors_.size() = " << armors_.size() << std::endl;
     return armors_;
   }
 
@@ -141,14 +149,14 @@ namespace rm_auto_aim
   {
     cv::Mat gray_img;
     cv::cvtColor(rgb_img, gray_img, cv::COLOR_RGB2GRAY);
-
+    cv::Mat gauss_img;
+    cv::GaussianBlur(gray_img, gauss_img, cv::Size(3, 3), 0, 0);
     cv::Mat binary_img;
-    cv::threshold(gray_img, binary_img, binary_thres, 255, cv::THRESH_BINARY);
-
+    cv::threshold(gauss_img, binary_img, binary_thres, 255, cv::THRESH_BINARY);
     return binary_img;
   }
 
-  std::vector<Light> Detector::findLights(const cv::Mat &rbg_img, const cv::Mat &binary_img, cv::Point2f roi_tl)
+  std::vector<Light> Detector::findLights(const cv::Mat &rbg_img, const cv::Mat &binary_img, cv::Point2f roi_tl, int light_color)
   {
     using std::vector;
     std::vector<vector<cv::Point>> contours;
@@ -157,12 +165,12 @@ namespace rm_auto_aim
 
     std::vector<Light> lights;
     this->debug_lights.data.clear();
-
+    
     for (const auto &contour : contours)
     {
-      if (contour.size() < 5)
+      if (contour.size() < 3)
         continue;
-
+      // std::cout << "contour.size() = " << contour.size() << std::endl;
       auto r_rect = cv::minAreaRect(contour);
       auto light = Light(r_rect);
 
@@ -176,10 +184,12 @@ namespace rm_auto_aim
           vertices[i].y += roi_tl.y;
         }
         cv::RotatedRect rect_ = cv::RotatedRect(vertices[0], vertices[1], vertices[2]);
-        lights.emplace_back(Light(rect_));
+        Light light = Light(rect_);
+        light.color = light_color;
+        lights.emplace_back(light);
       }
     }
-
+    // std::cout << "lights.size() = " << lights.size() << std::endl;
     return lights;
   }
 
@@ -190,7 +200,7 @@ namespace rm_auto_aim
     bool ratio_ok = l.min_ratio < ratio && ratio < l.max_ratio;
 
     bool angle_ok = light.tilt_angle < l.max_angle;
-
+    // std::cout << "ratio = " << ratio << ", angle = " << light.tilt_angle << std::endl;
     bool is_light = ratio_ok && angle_ok;
 
     // Fill in debug information
@@ -208,19 +218,20 @@ namespace rm_auto_aim
   {
     std::vector<Armor> armors;
     this->debug_armors.data.clear();
-
+    // std::cout << "func matchLights: lights.size() = " << lights.size() << std::endl;
     // Loop all the pairing of lights
     for (auto light_1 = lights.begin(); light_1 != lights.end(); light_1++)
     {
       for (auto light_2 = light_1 + 1; light_2 != lights.end(); light_2++)
       {
+        // std::cout << "func matchLights: light_1->color = " << light_1->color << ", light_2->color = " << light_2->color << std::endl;
         if (light_1->color != detect_color || light_2->color != detect_color)
           continue;
 
-        if (containLight(*light_1, *light_2, lights))
-        {
-          continue;
-        }
+        // if (containLight(*light_1, *light_2, lights))
+        // {
+        //   continue;
+        // }
 
         auto type = isArmor(*light_1, *light_2);
         if (type != ArmorType::INVALID)
@@ -277,7 +288,7 @@ namespace rm_auto_aim
     cv::Point2f diff = light_1.center - light_2.center;
     float angle = std::abs(std::atan(diff.y / diff.x)) / CV_PI * 180;
     bool angle_ok = angle < a.max_angle;
-
+    // std::cout << "func isArmor: light_length_ratio = " << light_length_ratio << ", center_distance = " << center_distance << ", angle = " << angle << std::endl;
     bool is_armor = light_ratio_ok && center_distance_ok && angle_ok;
 
     // Judge armor type
@@ -336,10 +347,10 @@ namespace rm_auto_aim
     // Draw armors
     for (const auto &armor : armors_)
     {
-      cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
-      cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 5);
-      cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 5);
-      cv::line(img, armor.right_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 5);
+      cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 2);
+      cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 2);
+      cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 2);
+      cv::line(img, armor.right_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 2);
     }
 
     // Show numbers and confidence
