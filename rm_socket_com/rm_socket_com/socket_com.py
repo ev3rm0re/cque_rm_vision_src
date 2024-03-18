@@ -6,6 +6,7 @@ import socket
 import cv2
 import numpy as np
 from cv_bridge import CvBridge
+from rclpy.qos import qos_profile_sensor_data
 
 class SocketCom(Node):
     def __init__(self, name):
@@ -29,13 +30,13 @@ class SocketCom(Node):
 class VideoSave(Node):
     def __init__(self):
         super().__init__('video_save')
-        self.sub = self.create_subscription(Image, '/detector/result_img', self.callback, 10)
+        self.sub = self.create_subscription(Image, '/image_raw', self.callback, qos_profile_sensor_data)
         self.fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        self.out = cv2.VideoWriter('output.avi', self.fourcc, 60, (1280, 1024))
+        self.out = cv2.VideoWriter('output.avi', self.fourcc, 30, (1280, 1024))
 
     def callback(self, msg):
         bridge = CvBridge()
-        img = bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        img = bridge.imgmsg_to_cv2(msg, desired_encoding='rgb8')
         self.out.write(img)
 
     def __del__(self):
