@@ -209,7 +209,12 @@ std::vector<Armor> ArmorDetectorNode::detectArmors(
   detector_->detect_color = get_parameter("detect_color").as_int();
   detector_->classifier->threshold = get_parameter("classifier_threshold").as_double();
 
-  auto armors = detector_->detect(img);
+  auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
+  auto xml_path = pkg_path + "/model/03.16_yolov8n_e50.xml";
+  auto bin_path = pkg_path + "/model/03.16_yolov8n_e50.bin";
+  YoloDet yolo(xml_path, bin_path);
+
+  auto armors = detector_->detect(yolo, img);
 
   auto final_time = this->now();
   auto latency = (final_time - img_msg->header.stamp).seconds() * 1000;

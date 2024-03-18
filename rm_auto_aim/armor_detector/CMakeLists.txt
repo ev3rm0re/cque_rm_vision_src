@@ -16,8 +16,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ## Find dependencies ##
 #######################
 
+find_library(OpenVINO_LIBRARIES NAME libopenvino.so HINTS "/usr/lib")
+link_libraries(${OpenVINO_LIBRARIES})
+add_definitions(${OpenVINO_DEFINITIONS})
+
 find_package(ament_cmake_auto REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(OpenVINO REQUIRED)
 ament_auto_find_build_dependencies()
 
 ###########
@@ -28,8 +33,8 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   DIRECTORY src
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${OpenVINO_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${OpenVINO_LIBS})
 
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN rm_auto_aim::ArmorDetectorNode
