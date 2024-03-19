@@ -353,6 +353,7 @@ namespace rm_auto_aim
     // Draw armors
     for (const auto &armor : armors_)
     {
+      cv::circle(img, armor.center, 10, cv::Scalar(255, 255, 255), -1);
       cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 2);
       cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 2);
       cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 2);
