@@ -70,5 +70,25 @@
         "typeinfo": "cpp",
         "variant": "cpp"
     },
-    "cmake.sourceDirectory": "/home/ev3rm0re/ros_ws/src/rm_auto_aim/armor_detector"
+    "cmake.sourceDirectory": "/home/ev3rm0re/ros_ws/src/rm_auto_aim/armor_detector",
+    "python.autoComplete.extraPaths": [
+        "/opt/intel/openvino_2024.0.0/python",
+        "/opt/intel/openvino_2024.0.0/python/python3",
+        "/home/ev3rm0re/ros_ws/install/rm_socket_com/lib/python3.10/site-packages",
+        "/home/ev3rm0re/ros_ws/install/rm_pyserial/lib/python3.10/site-packages",
+        "/home/ev3rm0re/ros_ws/install/rm_armor_position/lib/python3.10/site-packages",
+        "/home/ev3rm0re/ros_ws/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/opt/intel/openvino_2024.0.0/python",
+        "/opt/intel/openvino_2024.0.0/python/python3",
+        "/home/ev3rm0re/ros_ws/install/rm_socket_com/lib/python3.10/site-packages",
+        "/home/ev3rm0re/ros_ws/install/rm_pyserial/lib/python3.10/site-packages",
+        "/home/ev3rm0re/ros_ws/install/rm_armor_position/lib/python3.10/site-packages",
+        "/home/ev3rm0re/ros_ws/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
 }
