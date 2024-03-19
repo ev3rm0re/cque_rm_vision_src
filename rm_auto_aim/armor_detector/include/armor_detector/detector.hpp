@@ -69,7 +69,7 @@ namespace rm_auto_aim
 
     Detector(const int &bin_thres, const int &color, const LightParams &l, const ArmorParams &a);
 
-    std::vector<Armor> detect(YoloDet& yolo, const cv::Mat &input);
+    std::vector<Armor> detect(const cv::Mat &input);
 
     cv::Mat preprocessImage(const cv::Mat &input);
     std::vector<Light> findLights(const cv::Mat &rbg_img, const cv::Mat &binary_img, cv::Point2f roi_tl, int light_color);
@@ -85,6 +85,7 @@ namespace rm_auto_aim
     ArmorParams a;
 
     std::unique_ptr<NumberClassifier> classifier;
+    std::unique_ptr<YoloDet> yolo;
 
     // Debug msgs
     cv::Mat binary_img;

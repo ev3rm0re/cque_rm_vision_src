@@ -13,6 +13,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <time.h>
 
 #include "armor_detector/detector.hpp"
 #include "auto_aim_interfaces/msg/debug_armor.hpp"
@@ -112,13 +113,15 @@ namespace rm_auto_aim
   {
   }
 
-  std::vector<Armor> Detector::detect(YoloDet& yolo, const cv::Mat &input)
+  std::vector<Armor> Detector::detect(const cv::Mat &input)
   {
     armors_.clear();
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
-    ov::Tensor output = yolo.infer(bgr_img);
-    std::vector<std::vector<int>> results = yolo.postprocess(output, 0.5, 0.4);
+
+    ov::Tensor output = yolo->infer(bgr_img);
+    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.5, 0.4);
+
     // std::cout << "results.size() = " << results.size() << std::endl;
     for (std::vector<int> result : results)
     {
@@ -138,7 +141,7 @@ namespace rm_auto_aim
       std::vector<Armor> armor = matchLights(lights_);
       armors_.insert(armors_.end(), armor.begin(), armor.end());
     }
-    
+
     if (!armors_.empty())
     {
       classifier->extractNumbers(input, armors_);
