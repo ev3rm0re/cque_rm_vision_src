@@ -164,7 +164,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.armors_num = msg->armors_num;
     packet.yaw = atan2(msg->position.y, msg->position.x);
     packet.distance = msg->position.x;
-    if (abs(packet.yaw) < 0.015 || packet.id == 0) {
+    if (abs(packet.yaw) < 0.03 || packet.id == 0) {
       packet.yaw = 0.0;
     }
     // packet.x = msg->position.x;
