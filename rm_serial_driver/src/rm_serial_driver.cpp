@@ -119,7 +119,7 @@ void RMSerialDriver::receiveData()
           if (packet.reset_tracker) {
             resetTracker();
           }
-
+          // RCLCPP_WARN(get_logger(), "***************received!!!***************");
           // geometry_msgs::msg::TransformStamped t;
           // timestamp_offset_ = this->get_parameter("timestamp_offset").as_double();
           // t.header.stamp = this->now() + rclcpp::Duration::from_seconds(timestamp_offset_);
@@ -164,7 +164,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.armors_num = msg->armors_num;
     packet.yaw = atan2(msg->position.y, msg->position.x);
     packet.distance = msg->position.x;
-    if (abs(packet.yaw) < 0.03 || packet.id == 0) {
+    if (abs(packet.yaw) < 0.05 || packet.id == 0) {
       packet.yaw = 0.0;
     }
     // packet.x = msg->position.x;
@@ -184,7 +184,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
 
     serial_driver_->port()->send(data);
 
-    // RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
+    RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
 
     std_msgs::msg::Float64 latency;
     latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
