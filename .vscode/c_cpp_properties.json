@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/robo03/rm_ws/install/rm_serial_driver/include/**",
+        "/home/robo03/rm_ws/install/armor_tracker/include/**",
+        "/home/robo03/rm_ws/install/armor_detector/include/**",
+        "/home/robo03/rm_ws/install/auto_aim_interfaces/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/robo03/rm_ws/src/rm_auto_aim/armor_detector/include/**",
+        "/home/robo03/rm_ws/src/rm_auto_aim/armor_tracker/include/**",
+        "/home/robo03/rm_ws/src/rm_serial_driver/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

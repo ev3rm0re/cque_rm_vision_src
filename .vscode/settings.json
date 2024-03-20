@@ -70,5 +70,19 @@
         "typeinfo": "cpp",
         "variant": "cpp"
     },
-    "cmake.sourceDirectory": "/home/ev3rm0re/ros_ws/src/rm_auto_aim/armor_detector"
+    "cmake.sourceDirectory": "/home/ev3rm0re/ros_ws/src/rm_auto_aim/armor_detector",
+    "python.autoComplete.extraPaths": [
+        "/home/robo03/rm_ws/install/rm_socket_com/lib/python3.10/site-packages",
+        "/home/robo03/rm_ws/install/rm_pyserial/lib/python3.10/site-packages",
+        "/home/robo03/rm_ws/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/robo03/rm_ws/install/rm_socket_com/lib/python3.10/site-packages",
+        "/home/robo03/rm_ws/install/rm_pyserial/lib/python3.10/site-packages",
+        "/home/robo03/rm_ws/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
 }
