@@ -13,6 +13,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <time.h>
 
 #include "armor_detector/detector.hpp"
 #include "auto_aim_interfaces/msg/debug_armor.hpp"
@@ -58,12 +59,12 @@ namespace rm_auto_aim
     return output;
   }
 
-  std::vector<std::vector<int>> YoloDet::postprocess(const ov::Tensor &output, const float &score_threshold, const float &iou_threshold) const
+  std::vector<std::vector<int>> YoloDet::postprocess(const ov::Tensor &output, const float& obj_threshold, const float &score_threshold, const float &iou_threshold) const
   {
     // 后处理
     float *data = output.data<float>();
     cv::Mat output_buffer(output.get_shape()[1], output.get_shape()[2], CV_32F, data);
-    transpose(output_buffer, output_buffer);
+    std::vector<float>  obj_scores;
     std::vector<int> class_ids;
     std::vector<float> class_scores;
     std::vector<cv::Rect> boxes;
@@ -72,15 +73,17 @@ namespace rm_auto_aim
     for (int i = 0; i < output_buffer.rows; i++)
     {
       // 获取类别得分
-      cv::Mat classes_scores = output_buffer.row(i).colRange(4, 6);
+      cv::Mat classes_scores = output_buffer.row(i).colRange(5, 7);
+      float obj_score = output_buffer.at<float>(i, 4);
       cv::Point class_id;
       double maxClassScore;
       // 获取最大类别得分和类别索引
       cv::minMaxLoc(classes_scores, 0, &maxClassScore, 0, &class_id);
-      if (maxClassScore > score_threshold)
+      float final_score = maxClassScore * obj_score;
+      if (obj_score > obj_threshold && final_score > score_threshold)
       {
         // 将类别得分和类别索引存储
-        class_scores.push_back(maxClassScore);
+        class_scores.push_back(final_score);
         class_ids.push_back(class_id.x);
         // 获取边界框
         float cx = output_buffer.at<float>(i, 0);
@@ -112,13 +115,19 @@ namespace rm_auto_aim
   {
   }
 
-  std::vector<Armor> Detector::detect(YoloDet& yolo, const cv::Mat &input)
+  std::vector<Armor> Detector::detect(const cv::Mat &input)
   {
     armors_.clear();
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
-    ov::Tensor output = yolo.infer(bgr_img);
-    std::vector<std::vector<int>> results = yolo.postprocess(output, 0.5, 0.4);
+    // 计算时间
+    // clock_t start, end;
+    // start = clock();
+    ov::Tensor output = yolo->infer(bgr_img);
+    // end = clock();
+    // std::cout << "Inference time: " << (double)(end - start) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
+    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.80, 0.70, 0.3);
+
     // std::cout << "results.size() = " << results.size() << std::endl;
     for (std::vector<int> result : results)
     {
@@ -138,7 +147,7 @@ namespace rm_auto_aim
       std::vector<Armor> armor = matchLights(lights_);
       armors_.insert(armors_.end(), armor.begin(), armor.end());
     }
-    
+
     if (!armors_.empty())
     {
       classifier->extractNumbers(input, armors_);
@@ -350,6 +359,7 @@ namespace rm_auto_aim
     // Draw armors
     for (const auto &armor : armors_)
     {
+      cv::circle(img, armor.center, 10, cv::Scalar(255, 255, 255), -1);
       cv::line(img, armor.left_light.top, armor.right_light.bottom, cv::Scalar(0, 255, 0), 2);
       cv::line(img, armor.left_light.bottom, armor.right_light.top, cv::Scalar(0, 255, 0), 2);
       cv::line(img, armor.left_light.top, armor.left_light.bottom, cv::Scalar(0, 255, 0), 2);

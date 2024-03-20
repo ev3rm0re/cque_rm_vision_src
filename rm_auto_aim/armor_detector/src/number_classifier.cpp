@@ -75,7 +75,6 @@ void NumberClassifier::extractNumbers(const cv::Mat & src, std::vector<Armor> & 
     // Binarize
     cv::cvtColor(number_image, number_image, cv::COLOR_RGB2GRAY);
     cv::threshold(number_image, number_image, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-
     armor.number_img = number_image;
   }
 }

@@ -119,7 +119,7 @@ void RMSerialDriver::receiveData()
           if (packet.reset_tracker) {
             resetTracker();
           }
-
+          // RCLCPP_WARN(get_logger(), "***************received!!!***************");
           // geometry_msgs::msg::TransformStamped t;
           // timestamp_offset_ = this->get_parameter("timestamp_offset").as_double();
           // t.header.stamp = this->now() + rclcpp::Duration::from_seconds(timestamp_offset_);
@@ -163,8 +163,31 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.id = id_unit8_map.at(msg->id);
     packet.armors_num = msg->armors_num;
     packet.yaw = atan2(msg->position.y, msg->position.x);
+    // 均值滤波
+    yaw_queue.push(packet.yaw);
+    float sum = 0;
+    if (yaw_queue.size() > 10)
+    {
+      std::deque<float> temp_deque;
+      while (!yaw_queue.empty())
+      {
+        float value = yaw_queue.front();
+        sum += value;
+        temp_deque.push_back(value);
+        yaw_queue.pop();
+      }
+
+      // 将元素重新放回队列
+      while (!temp_deque.empty())
+      {
+        yaw_queue.push(temp_deque.front());
+        temp_deque.pop_front();
+      }
+      packet.yaw = sum / 20;
+      yaw_queue.pop();
+    }
     packet.distance = msg->position.x;
-    if (abs(packet.yaw) < 0.01 || packet.id == 0) {
+    if (abs(packet.yaw) < 0.015 || packet.id == 0) {
       packet.yaw = 0.0;
     }
     // packet.x = msg->position.x;
@@ -184,7 +207,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
 
     serial_driver_->port()->send(data);
 
-    RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
+    // RCLCPP_INFO(get_logger(), "yaw: %f, distance: %f", packet.yaw, packet.distance);
 
     std_msgs::msg::Float64 latency;
     latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
