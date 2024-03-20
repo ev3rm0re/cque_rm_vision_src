@@ -29,7 +29,7 @@ namespace rm_auto_aim
     // for (auto device : core.get_available_devices()) {
     //   std::cout << device << std::endl;
     // }
-    compiled_model = core.compile_model(model, "GPU");
+    compiled_model = core.compile_model(model, "CPU");
     infer_request = compiled_model.create_infer_request();
     scale = 0.0;
   }
@@ -59,12 +59,12 @@ namespace rm_auto_aim
     return output;
   }
 
-  std::vector<std::vector<int>> YoloDet::postprocess(const ov::Tensor &output, const float &score_threshold, const float &iou_threshold) const
+  std::vector<std::vector<int>> YoloDet::postprocess(const ov::Tensor &output, const float& obj_threshold, const float &score_threshold, const float &iou_threshold) const
   {
     // 后处理
     float *data = output.data<float>();
     cv::Mat output_buffer(output.get_shape()[1], output.get_shape()[2], CV_32F, data);
-    transpose(output_buffer, output_buffer);
+    std::vector<float>  obj_scores;
     std::vector<int> class_ids;
     std::vector<float> class_scores;
     std::vector<cv::Rect> boxes;
@@ -73,15 +73,17 @@ namespace rm_auto_aim
     for (int i = 0; i < output_buffer.rows; i++)
     {
       // 获取类别得分
-      cv::Mat classes_scores = output_buffer.row(i).colRange(4, 6);
+      cv::Mat classes_scores = output_buffer.row(i).colRange(5, 7);
+      float obj_score = output_buffer.at<float>(i, 4);
       cv::Point class_id;
       double maxClassScore;
       // 获取最大类别得分和类别索引
       cv::minMaxLoc(classes_scores, 0, &maxClassScore, 0, &class_id);
-      if (maxClassScore > score_threshold)
+      float final_score = maxClassScore * obj_score;
+      if (obj_score > obj_threshold && final_score > score_threshold)
       {
         // 将类别得分和类别索引存储
-        class_scores.push_back(maxClassScore);
+        class_scores.push_back(final_score);
         class_ids.push_back(class_id.x);
         // 获取边界框
         float cx = output_buffer.at<float>(i, 0);
@@ -120,7 +122,7 @@ namespace rm_auto_aim
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
 
     ov::Tensor output = yolo->infer(bgr_img);
-    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.5, 0.4);
+    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.80, 0.70, 0.3);
 
     // std::cout << "results.size() = " << results.size() << std::endl;
     for (std::vector<int> result : results)
