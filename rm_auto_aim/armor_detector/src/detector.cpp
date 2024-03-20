@@ -29,7 +29,7 @@ namespace rm_auto_aim
     // for (auto device : core.get_available_devices()) {
     //   std::cout << device << std::endl;
     // }
-    compiled_model = core.compile_model(model, "CPU");
+    compiled_model = core.compile_model(model, "GPU");
     infer_request = compiled_model.create_infer_request();
     scale = 0.0;
   }
@@ -120,8 +120,12 @@ namespace rm_auto_aim
     armors_.clear();
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
-
+    // 计算时间
+    // clock_t start, end;
+    // start = clock();
     ov::Tensor output = yolo->infer(bgr_img);
+    // end = clock();
+    // std::cout << "Inference time: " << (double)(end - start) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
     std::vector<std::vector<int>> results = yolo->postprocess(output, 0.80, 0.70, 0.3);
 
     // std::cout << "results.size() = " << results.size() << std::endl;
