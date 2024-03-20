@@ -33,7 +33,7 @@ ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions & options)
 
   // Detector
   detector_ = initDetector();
-  yolo = new YoloDet(xml_path, bin_path);
+  
   // Armors Publisher
   armors_pub_ = this->create_publisher<auto_aim_interfaces::msg::Armors>(
     "/detector/armors", rclcpp::SensorDataQoS());

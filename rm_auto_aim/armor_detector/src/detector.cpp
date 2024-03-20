@@ -120,14 +120,10 @@ namespace rm_auto_aim
     armors_.clear();
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
-    // 计算时间
-    // clock_t start, end;
-    // start = clock();
-    ov::Tensor output = yolo->infer(bgr_img);
-    // end = clock();
-    // std::cout << "Inference time: " << (double)(end - start) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
-    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.80, 0.70, 0.3);
 
+    ov::Tensor output = yolo->infer(bgr_img);
+    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.80, 0.70, 0.3);
+    
     // std::cout << "results.size() = " << results.size() << std::endl;
     for (std::vector<int> result : results)
     {
@@ -147,7 +143,6 @@ namespace rm_auto_aim
       std::vector<Armor> armor = matchLights(lights_);
       armors_.insert(armors_.end(), armor.begin(), armor.end());
     }
-
     if (!armors_.empty())
     {
       classifier->extractNumbers(input, armors_);
