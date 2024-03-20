@@ -166,7 +166,7 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     // 均值滤波
     yaw_queue.push(packet.yaw);
     float sum = 0;
-    if (yaw_queue.size() > 10)
+    if (yaw_queue.size() > 20)
     {
       std::deque<float> temp_deque;
       while (!yaw_queue.empty())
