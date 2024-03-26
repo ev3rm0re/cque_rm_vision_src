@@ -30,7 +30,7 @@
     armor.max_large_center_distance: 5.00
     armor.max_angle: 30.0
 
-    classifier_threshold: 0.3
+    classifier_threshold: 0.5
     ignore_classes: ["negative"]
 
 /armor_tracker:
