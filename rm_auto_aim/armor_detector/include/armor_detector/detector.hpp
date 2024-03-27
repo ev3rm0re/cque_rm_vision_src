@@ -34,6 +34,8 @@ namespace rm_auto_aim
     std::shared_ptr<ov::Model> model;
     ov::CompiledModel compiled_model;
     ov::InferRequest infer_request;
+    cv::Mat letterbox_image;
+    cv::Mat blob;
     float scale;
 
     cv::Mat letterbox(const cv::Mat &source);

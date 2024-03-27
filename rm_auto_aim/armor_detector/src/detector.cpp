@@ -13,7 +13,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
-#include <time.h>
+#include <chrono>
 
 #include "armor_detector/detector.hpp"
 #include "auto_aim_interfaces/msg/debug_armor.hpp"
@@ -48,14 +48,18 @@ namespace rm_auto_aim
   ov::Tensor YoloDet::infer(const cv::Mat &image)
   {
     // 推理
-    cv::Mat letterbox_image = YoloDet::letterbox(image);
+    // auto start = std::chrono::high_resolution_clock::now();
+    letterbox_image = YoloDet::letterbox(image);
     scale = letterbox_image.size[0] / 640.0;
-    cv::Mat blob = cv::dnn::blobFromImage(letterbox_image, 1.0 / 255.0, cv::Size(640, 640), cv::Scalar(), true);
+    blob = cv::dnn::blobFromImage(letterbox_image, 1.0 / 255.0, cv::Size(640, 640), cv::Scalar(), true);
     auto &input_port = compiled_model.input();
     ov::Tensor input_tensor(input_port.get_element_type(), input_port.get_shape(), blob.ptr(0));
     infer_request.set_input_tensor(input_tensor);
     infer_request.infer();
     auto output = infer_request.get_output_tensor(0);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    // std::cout << "Inference time: " << duration.count() << "ms" << std::endl;
     return output;
   }
 
@@ -118,7 +122,6 @@ namespace rm_auto_aim
     armors_.clear();
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
-
     ov::Tensor output = yolo->infer(bgr_img);
     std::vector<std::vector<int>> results = yolo->postprocess(output, 0.5, 0.4);
 
