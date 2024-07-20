@@ -29,7 +29,7 @@ namespace rm_auto_aim
     // for (auto device : core.get_available_devices()) {
     //   std::cout << device << std::endl;
     // }
-    compiled_model = core.compile_model(model, "GPU");
+    compiled_model = core.compile_model(model, "CPU");
     infer_request = compiled_model.create_infer_request();
     scale = 0.0;
   }
