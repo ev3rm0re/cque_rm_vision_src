@@ -7,7 +7,7 @@
 /serial_driver:
   ros__parameters:
     timestamp_offset: 0.006
-    device_name: /dev/ttyACM0
+    device_name: /dev/ttyUSB0
     baud_rate: 115200
     flow_control: none
     parity: none
@@ -21,16 +21,16 @@
     binary_thres: 80
 
     light.min_ratio: 0.05
-    light.max_ratio: 0.75
+    light.max_ratio: 0.90
     light.max_angle: 30.0
     armor.min_light_ratio: 0.30
     armor.min_small_center_distance: 0.50
-    armor.max_small_center_distance: 2.50
-    armor.min_large_center_distance: 2.50
-    armor.max_large_center_distance: 5.00
+    armor.max_small_center_distance: 3.00
+    armor.min_large_center_distance: 3.00
+    armor.max_large_center_distance: 7.50
     armor.max_angle: 30.0
 
-    classifier_threshold: 0.5
+    classifier_threshold: 0.3
     ignore_classes: ["negative"]
 
 /armor_tracker:
