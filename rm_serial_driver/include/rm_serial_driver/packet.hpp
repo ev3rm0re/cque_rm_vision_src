@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <vector>
+#include <iostream>
+#include <iomanip>
 
 namespace rm_serial_driver
 {
@@ -63,6 +65,11 @@ inline std::vector<uint8_t> toVector(const SendPacket & data)
   std::copy(
     reinterpret_cast<const uint8_t *>(&data),
     reinterpret_cast<const uint8_t *>(&data) + sizeof(SendPacket), packet.begin());
+  // 十六进制打印串口数据
+  // for (auto byte : packet) {
+  //   std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+  // }
+  // std::cout << std::endl; // 在打印完所有字节后换行
   return packet;
 }
 

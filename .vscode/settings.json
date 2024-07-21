@@ -75,7 +75,8 @@
         "coroutine": "cpp",
         "source_location": "cpp",
         "shared_mutex": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "*.ipp": "cpp"
     },
     "cmake.sourceDirectory": "/home/ev3rm0re/ros_ws/src/rm_auto_aim/armor_detector",
     "python.autoComplete.extraPaths": [

@@ -163,29 +163,29 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     packet.id = id_unit8_map.at(msg->id);
     packet.armors_num = msg->armors_num;
     packet.yaw = atan2(msg->position.y, msg->position.x);
-    // 均值滤波
-    yaw_queue.push(packet.yaw);
-    float sum = 0;
-    if (yaw_queue.size() > 20)
-    {
-      std::deque<float> temp_deque;
-      while (!yaw_queue.empty())
-      {
-        float value = yaw_queue.front();
-        sum += value;
-        temp_deque.push_back(value);
-        yaw_queue.pop();
-      }
+    // // 均值滤波
+    // yaw_queue.push(packet.yaw);
+    // float sum = 0;
+    // if (yaw_queue.size() > 20)
+    // {
+    //   std::deque<float> temp_deque;
+    //   while (!yaw_queue.empty())
+    //   {
+    //     float value = yaw_queue.front();
+    //     sum += value;
+    //     temp_deque.push_back(value);
+    //     yaw_queue.pop();
+    //   }
 
-      // 将元素重新放回队列
-      while (!temp_deque.empty())
-      {
-        yaw_queue.push(temp_deque.front());
-        temp_deque.pop_front();
-      }
-      packet.yaw = sum / 20;
-      yaw_queue.pop();
-    }
+    //   // 将元素重新放回队列
+    //   while (!temp_deque.empty())
+    //   {
+    //     yaw_queue.push(temp_deque.front());
+    //     temp_deque.pop_front();
+    //   }
+    //   packet.yaw = sum / 20;
+    //   yaw_queue.pop();
+    // }
     packet.distance = msg->position.x;
     if (abs(packet.yaw) < 0.015 || packet.id == 0) {
       packet.yaw = 0.0;
