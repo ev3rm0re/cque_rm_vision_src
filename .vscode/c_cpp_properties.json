@@ -6,15 +6,18 @@
         "limitSymbolsToIncludedHeaders": false
       },
       "includePath": [
-        "/home/robo03/rm_ws/install/rm_serial_driver/include/**",
-        "/home/robo03/rm_ws/install/armor_tracker/include/**",
-        "/home/robo03/rm_ws/install/armor_detector/include/**",
-        "/home/robo03/rm_ws/install/auto_aim_interfaces/include/**",
+        "/home/ev3rm0re/workspace/ros_workspace/install/rm_serial_driver/include/**",
+        "/home/ev3rm0re/workspace/ros_workspace/install/armor_tracker/include/**",
+        "/home/ev3rm0re/workspace/ros_workspace/install/armor_detector/include/**",
+        "/home/ev3rm0re/workspace/ros_workspace/install/auto_aim_interfaces/include/**",
         "/opt/ros/humble/include/**",
-        "/home/robo03/rm_ws/src/rm_auto_aim/armor_detector/include/**",
-        "/home/robo03/rm_ws/src/rm_auto_aim/armor_tracker/include/**",
-        "/home/robo03/rm_ws/src/rm_serial_driver/include/**",
-        "/usr/include/**"
+        "/home/ev3rm0re/workspace/ros_workspace/src/rm_auto_aim/armor_detector/include/**",
+        "/home/ev3rm0re/workspace/ros_workspace/src/rm_auto_aim/armor_tracker/include/**",
+        "/home/ev3rm0re/workspace/ros_workspace/src/rm_serial_driver/include/**",
+        "/usr/include/**",
+        "/usr/local/include/opencv4",
+        "/usr/local/cuda/include/**",
+        "/home/ev3rm0re/Programs/TensorRT-10.2.0.19/include/**"
       ],
       "name": "ROS",
       "intelliSenseMode": "gcc-x64",
