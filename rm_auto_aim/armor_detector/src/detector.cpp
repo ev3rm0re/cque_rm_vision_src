@@ -296,13 +296,13 @@ namespace rm_auto_aim
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
     objs.clear();
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    // std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     yolo->copy_from_Mat(bgr_img);
     yolo->infer();
     yolo->postprocess(objs, 0.25, 0.65, 100, 2);
-    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-    std::cout << "YOLOv8 time: " << time_span.count() << "ms" << std::endl;
+    // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    // auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    // std::cout << "YOLOv8 time: " << time_span.count() << "ms" << std::endl;
     // std::cout << "objs.size() = " << objs.size() << std::endl;
     std::vector<std::vector<int>> results;
     for (auto &obj : objs)
