@@ -196,9 +196,11 @@ std::unique_ptr<Detector> ArmorDetectorNode::initDetector()
     std::make_unique<NumberClassifier>(model_path, label_path, threshold, ignore_classes);
 
   // 初始化YOLO
-  auto xml_path = pkg_path + "/model/03.16_yolov8n_e50_int8.xml";
-  auto bin_path = pkg_path + "/model/03.16_yolov8n_e50_int8.bin";
-  detector->yolo = std::make_unique<YoloDet>(xml_path, bin_path);
+  std::cout << "Init YOLO" << std::endl;
+  cudaSetDevice(0);
+  auto engine_path = pkg_path + "/model/03.16_yolov8n_e50.engine";
+  detector->yolo = std::make_unique<YOLOv8RT>(engine_path);
+  detector->yolo->make_pipe();
   return detector;
 
 }

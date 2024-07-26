@@ -22,94 +22,266 @@
 namespace rm_auto_aim
 {
 
-  YoloDet::YoloDet(const std::string &xml_path, const std::string &bin_path)
+  YOLOv8RT::YOLOv8RT(const std::string &engine_file_path)
   {
-    // 初始化模型，创建推理请求
-    model = core.read_model(xml_path, bin_path);
-    // for (auto device : core.get_available_devices()) {
-    //   std::cout << device << std::endl;
-    // }
-    compiled_model = core.compile_model(model, "GPU");
-    infer_request = compiled_model.create_infer_request();
-    scale = 0.0;
-  }
+    std::ifstream file(engine_file_path, std::ios::binary);
+    assert(file.good());
+    file.seekg(0, std::ios::end);
+    auto size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    char *trtModelStream = new char[size];
+    file.read(trtModelStream, size);
+    file.close();
+    initLibNvInferPlugins(&this->gLogger, "");
+    this->runtime = nvinfer1::createInferRuntime(this->gLogger);
+    assert(this->runtime != nullptr);
 
-  cv::Mat YoloDet::letterbox(const cv::Mat &source)
-  {
-    // 将图像填充为正方形
-    int col = source.cols;
-    int row = source.rows;
-    int _max = std::max(col, row);
-    cv::Mat result = cv::Mat::zeros(_max, _max, CV_8UC3);
-    source.copyTo(result(cv::Rect(0, 0, col, row)));
-    return result;
-  }
+    this->engine = this->runtime->deserializeCudaEngine(trtModelStream, size);
+    assert(this->engine != nullptr);
+    delete[] trtModelStream;
+    this->context = this->engine->createExecutionContext();
 
-  ov::Tensor YoloDet::infer(const cv::Mat &image)
-  {
-    // 推理
-    // auto start = std::chrono::high_resolution_clock::now();
-    letterbox_image = YoloDet::letterbox(image);
-    scale = letterbox_image.size[0] / 640.0;
-    blob = cv::dnn::blobFromImage(letterbox_image, 1.0 / 255.0, cv::Size(640, 640), cv::Scalar(), true);
-    auto &input_port = compiled_model.input();
-    ov::Tensor input_tensor(input_port.get_element_type(), input_port.get_shape(), blob.ptr(0));
-    infer_request.set_input_tensor(input_tensor);
-    infer_request.infer();
-    auto output = infer_request.get_output_tensor(0);
-    // auto end = std::chrono::high_resolution_clock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    // std::cout << "Inference time: " << duration.count() << "ms" << std::endl;
-    return output;
-  }
+    assert(this->context != nullptr);
+    cudaStreamCreate(&this->stream);
 
-  std::vector<std::vector<int>> YoloDet::postprocess(const ov::Tensor &output, const float &score_threshold, const float &iou_threshold) const
-  {
-    // 后处理
-    float *data = output.data<float>();
-    cv::Mat output_buffer(output.get_shape()[1], output.get_shape()[2], CV_32F, data);
-    transpose(output_buffer, output_buffer);
-    std::vector<int> class_ids;
-    std::vector<float> class_scores;
-    std::vector<cv::Rect> boxes;
-    std::vector<std::vector<int>> results;
-    // 遍历输出层
-    for (int i = 0; i < output_buffer.rows; i++)
+    this->num_bindings = this->engine->getNbIOTensors();
+
+    for (int i = 0; i < this->num_bindings; ++i)
     {
-      // 获取类别得分
-      cv::Mat classes_scores = output_buffer.row(i).colRange(4, 6);
-      cv::Point class_id;
-      double maxClassScore;
-      // 获取最大类别得分和类别索引
-      cv::minMaxLoc(classes_scores, 0, &maxClassScore, 0, &class_id);
-      if (maxClassScore > score_threshold)
+      det::Binding binding;
+      nvinfer1::Dims dims;
+
+      std::string name = this->engine->getIOTensorName(i);
+      nvinfer1::DataType dtype = this->engine->getTensorDataType(name.c_str());
+
+      binding.name = name;
+      binding.dsize = type_to_size(dtype);
+
+      bool IsInput = engine->getTensorIOMode(name.c_str()) == nvinfer1::TensorIOMode::kINPUT;
+
+      if (IsInput)
       {
-        // 将类别得分和类别索引存储
-        class_scores.push_back(maxClassScore);
-        class_ids.push_back(class_id.x);
-        // 获取边界框
-        float cx = output_buffer.at<float>(i, 0);
-        float cy = output_buffer.at<float>(i, 1);
-        float w = output_buffer.at<float>(i, 2);
-        float h = output_buffer.at<float>(i, 3);
-        // 计算边界框真实坐标
-        int left = int((cx - 0.5 * w) * scale);
-        int top = int((cy - 0.5 * h) * scale);
-        int width = int(w * scale);
-        int height = int(h * scale);
-        // 将边界框存储
-        boxes.push_back(cv::Rect(left, top, width, height));
+        this->num_inputs += 1;
+        dims = this->engine->getProfileShape(name.c_str(), 0, nvinfer1::OptProfileSelector::kMAX);
+        // set max opt shape
+        this->context->setInputShape(name.c_str(), dims);
+
+        binding.size = get_size_by_dims(dims);
+        binding.dims = dims;
+        this->input_bindings.push_back(binding);
+      }
+      else
+      {
+
+        dims = this->context->getTensorShape(name.c_str());
+
+        binding.size = get_size_by_dims(dims);
+        binding.dims = dims;
+        this->output_bindings.push_back(binding);
+        this->num_outputs += 1;
       }
     }
-    std::vector<int> indices;
-    // 非极大值抑制
-    cv::dnn::NMSBoxes(boxes, class_scores, score_threshold, iou_threshold, indices);
-    for (size_t i = 0; i < indices.size(); i++)
-    {
-      results.push_back(std::vector<int>{boxes[indices[i]].tl().x, boxes[indices[i]].tl().y, boxes[indices[i]].br().x, boxes[indices[i]].br().y, class_ids[indices[i]], (int)(class_scores[indices[i]] * 100)});
-    }
-    return results;
   }
+
+  YOLOv8RT::~YOLOv8RT()
+  {
+    delete this->context;
+    delete this->engine;
+    delete this->runtime;
+    cudaStreamDestroy(this->stream);
+    for (auto &ptr : this->device_ptrs)
+    {
+      CHECK(cudaFree(ptr));
+    }
+
+    for (auto &ptr : this->host_ptrs)
+    {
+      CHECK(cudaFreeHost(ptr));
+    }
+  }
+
+  void YOLOv8RT::make_pipe()
+  {
+
+    for (auto &bindings : this->input_bindings)
+    {
+      void *d_ptr;
+      CHECK(cudaMallocAsync(&d_ptr, bindings.size * bindings.dsize, this->stream));
+      this->device_ptrs.push_back(d_ptr);
+
+      auto name = bindings.name.c_str();
+      this->context->setInputShape(name, bindings.dims);
+      this->context->setTensorAddress(name, d_ptr);
+    }
+
+    for (auto &bindings : this->output_bindings)
+    {
+      void *d_ptr, *h_ptr;
+      size_t size = bindings.size * bindings.dsize;
+      CHECK(cudaMallocAsync(&d_ptr, size, this->stream));
+      CHECK(cudaHostAlloc(&h_ptr, size, 0));
+      this->device_ptrs.push_back(d_ptr);
+      this->host_ptrs.push_back(h_ptr);
+
+      auto name = bindings.name.c_str();
+      this->context->setTensorAddress(name, d_ptr);
+    }
+  }
+
+  void YOLOv8RT::letterbox(const cv::Mat &image, cv::Mat &out, cv::Size &size)
+  {
+    const float inp_h = size.height;
+    const float inp_w = size.width;
+    float height = image.rows;
+    float width = image.cols;
+
+    float r = std::min(inp_h / height, inp_w / width);
+    int padw = std::round(width * r);
+    int padh = std::round(height * r);
+
+    cv::Mat tmp;
+    if ((int)width != padw || (int)height != padh)
+    {
+      cv::resize(image, tmp, cv::Size(padw, padh));
+    }
+    else
+    {
+      tmp = image.clone();
+    }
+
+    float dw = inp_w - padw;
+    float dh = inp_h - padh;
+
+    dw /= 2.0f;
+    dh /= 2.0f;
+    int top = int(std::round(dh - 0.1f));
+    int bottom = int(std::round(dh + 0.1f));
+    int left = int(std::round(dw - 0.1f));
+    int right = int(std::round(dw + 0.1f));
+
+    cv::copyMakeBorder(tmp, tmp, top, bottom, left, right, cv::BORDER_CONSTANT, {114, 114, 114});
+
+    out.create({1, 3, (int)inp_h, (int)inp_w}, CV_32F);
+
+    std::vector<cv::Mat> channels;
+    cv::split(tmp, channels);
+
+    cv::Mat c0((int)inp_h, (int)inp_w, CV_32F, (float *)out.data);
+    cv::Mat c1((int)inp_h, (int)inp_w, CV_32F, (float *)out.data + (int)inp_h * (int)inp_w);
+    cv::Mat c2((int)inp_h, (int)inp_w, CV_32F, (float *)out.data + (int)inp_h * (int)inp_w * 2);
+
+    channels[0].convertTo(c2, CV_32F, 1 / 255.f);
+    channels[1].convertTo(c1, CV_32F, 1 / 255.f);
+    channels[2].convertTo(c0, CV_32F, 1 / 255.f);
+
+    this->pparam.ratio = 1 / r;
+    this->pparam.dw = dw;
+    this->pparam.dh = dh;
+    this->pparam.height = height;
+    this->pparam.width = width;
+    ;
+  }
+
+  void YOLOv8RT::copy_from_Mat(const cv::Mat &image)
+  {
+    cv::Mat nchw;
+    auto &in_binding = this->input_bindings[0];
+    int width = in_binding.dims.d[3];
+    int height = in_binding.dims.d[2];
+    cv::Size size{width, height};
+    this->letterbox(image, nchw, size);
+    // std::cout << nchw.total() * nchw.elemSize() << std::endl;
+    // std::cout << nchw.size << std::endl;
+    CHECK(cudaMemcpyAsync(
+        this->device_ptrs[0], nchw.ptr(), nchw.total() * nchw.elemSize(), cudaMemcpyHostToDevice, this->stream));
+
+    auto name = this->input_bindings[0].name.c_str();
+    this->context->setInputShape(name, nvinfer1::Dims{4, {1, 3, size.height, size.width}});
+    this->context->setTensorAddress(name, this->device_ptrs[0]);
+  }
+
+  void YOLOv8RT::infer()
+  {
+    this->context->enqueueV3(this->stream);
+    for (int i = 0; i < this->num_outputs; i++)
+    {
+      size_t osize = this->output_bindings[i].size * this->output_bindings[i].dsize;
+      CHECK(cudaMemcpyAsync(
+          this->host_ptrs[i], this->device_ptrs[i + this->num_inputs], osize, cudaMemcpyDeviceToHost, this->stream));
+    }
+    cudaStreamSynchronize(this->stream);
+  }
+
+  void YOLOv8RT::postprocess(std::vector<det::Object> &objs, float score_thres, float iou_thres, int topk, int num_labels)
+  {
+    objs.clear();
+    int num_channels = this->output_bindings[0].dims.d[1];
+    int num_anchors = this->output_bindings[0].dims.d[2];
+
+    auto &dw = this->pparam.dw;
+    auto &dh = this->pparam.dh;
+    auto &width = this->pparam.width;
+    auto &height = this->pparam.height;
+    auto &ratio = this->pparam.ratio;
+
+    std::vector<cv::Rect> bboxes;
+    std::vector<float> scores;
+    std::vector<int> labels;
+    std::vector<int> indices;
+
+    cv::Mat output = cv::Mat(num_channels, num_anchors, CV_32F, static_cast<float *>(this->host_ptrs[0]));
+    output = output.t();
+    for (int i = 0; i < num_anchors; i++)
+    {
+      auto row_ptr = output.row(i).ptr<float>();
+      auto bboxes_ptr = row_ptr;
+      auto scores_ptr = row_ptr + 4;
+      auto max_s_ptr = std::max_element(scores_ptr, scores_ptr + num_labels);
+      float score = *max_s_ptr;
+      if (score > score_thres)
+      {
+        float x = *bboxes_ptr++ - dw;
+        float y = *bboxes_ptr++ - dh;
+        float w = *bboxes_ptr++;
+        float h = *bboxes_ptr;
+
+        float x0 = clamp((x - 0.5f * w) * ratio, 0.f, width);
+        float y0 = clamp((y - 0.5f * h) * ratio, 0.f, height);
+        float x1 = clamp((x + 0.5f * w) * ratio, 0.f, width);
+        float y1 = clamp((y + 0.5f * h) * ratio, 0.f, height);
+
+        int label = max_s_ptr - scores_ptr;
+        cv::Rect_<float> bbox;
+        bbox.x = x0;
+        bbox.y = y0;
+        bbox.width = x1 - x0;
+        bbox.height = y1 - y0;
+
+        bboxes.push_back(bbox);
+        labels.push_back(label);
+        scores.push_back(score);
+      }
+    }
+
+    cv::dnn::NMSBoxes(bboxes, scores, score_thres, iou_thres, indices);
+
+    int cnt = 0;
+    for (auto &i : indices)
+    {
+      if (cnt >= topk)
+      {
+        break;
+      }
+      det::Object obj;
+      obj.rect = bboxes[i];
+      obj.prob = scores[i];
+      obj.label = labels[i];
+      objs.push_back(obj);
+      cnt += 1;
+    }
+  }
+
+  /***********************************************************/
 
   Detector::Detector(
       const int &bin_thres, const int &color, const LightParams &l, const ArmorParams &a)
@@ -119,11 +291,30 @@ namespace rm_auto_aim
 
   std::vector<Armor> Detector::detect(const cv::Mat &input)
   {
+    
     armors_.clear();
     cv::Mat bgr_img;
     cv::cvtColor(input, bgr_img, cv::COLOR_RGB2BGR);
-    ov::Tensor output = yolo->infer(bgr_img);
-    std::vector<std::vector<int>> results = yolo->postprocess(output, 0.5, 0.4);
+    objs.clear();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    yolo->copy_from_Mat(bgr_img);
+    yolo->infer();
+    yolo->postprocess(objs, 0.25, 0.65, 100, 2);
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    std::cout << "YOLOv8 time: " << time_span.count() << "ms" << std::endl;
+    // std::cout << "objs.size() = " << objs.size() << std::endl;
+    std::vector<std::vector<int>> results;
+    for (auto &obj : objs)
+    {
+      std::vector<int> result;
+      result.push_back(obj.rect.x);
+      result.push_back(obj.rect.y);
+      result.push_back(obj.rect.x + obj.rect.width);
+      result.push_back(obj.rect.y + obj.rect.height);
+      result.push_back(obj.label);
+      results.push_back(result);
+    }
 
     // std::cout << "results.size() = " << results.size() << std::endl;
     for (std::vector<int> result : results)
@@ -134,11 +325,11 @@ namespace rm_auto_aim
         continue;
       }
       cv::Mat roi_image = input(roi);
-      
+
       cv::Point2f roi_tl = cv::Point2f(roi.x, roi.y);
       binary_img = preprocessImage(roi_image);
       // cv::imshow("binary_img", binary_img);
-      // cv::waitKey(1);
+      // cv::waitKey(0);
       // std::cout << "result[4] = " << result[4] << std::endl;
       lights_ = findLights(roi_image, binary_img, roi_tl, (int)result[4]);
       std::vector<Armor> armor = matchLights(lights_);
@@ -174,7 +365,7 @@ namespace rm_auto_aim
 
     std::vector<Light> lights;
     this->debug_lights.data.clear();
-    
+
     for (const auto &contour : contours)
     {
       if (contour.size() < 3)
@@ -366,9 +557,11 @@ namespace rm_auto_aim
     // Show numbers and confidence
     for (const auto &armor : armors_)
     {
+      std::string color = armor.left_light.color == 0 ? "RED" : "BLUE";
+      std::string text = color + armor.classfication_result;
       cv::putText(
-          img, armor.classfication_result, armor.left_light.top, cv::FONT_HERSHEY_SIMPLEX, 1,
-          cv::Scalar(255, 255, 255), 5);
+          img, text, armor.left_light.top, cv::FONT_HERSHEY_SIMPLEX, 0.6,
+          cv::Scalar(255, 255, 255), 2);
     }
   }
 

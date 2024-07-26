@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
 ## enforcing cleaner code.
 add_definitions(-Wall -Werror)
+add_definitions(-Wno-deprecated-declarations)
 
 ## Export compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -16,13 +17,28 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ## Find dependencies ##
 #######################
 
+# openvino
+find_package(OpenVINO REQUIRED)
 find_library(OpenVINO_LIBRARIES NAME libopenvino.so HINTS "/usr/lib")
 link_libraries(${OpenVINO_LIBRARIES})
 add_definitions(${OpenVINO_DEFINITIONS})
 
-find_package(ament_cmake_auto REQUIRED)
+# TensorRT
+include_directories(/home/ev3rm0re/Programs/TensorRT-10.2.0.19/include)
+find_library(TENSORRT_LIBRARIES NAME libnvinfer.so HINTS "/home/ev3rm0re/Programs/TensorRT-10.2.0.19/lib")
+find_library(TENSORRT_PLUGIN_LIBRARIES NAME libnvinfer_plugin.so HINTS "/home/ev3rm0re/Programs/TensorRT-10.2.0.19/lib")
+link_directories(${TENSORRT_LIBRARIES})
+link_directories(${TENSORRT_PLUGIN_LIBRARIES})
+
+# CUDA
+find_package(CUDA REQUIRED)
+include_directories(${CUDA_INCLUDE_DIRS})
+
+# OpenCV
 find_package(OpenCV REQUIRED)
-find_package(OpenVINO REQUIRED)
+
+find_package(ament_cmake_auto REQUIRED)
+
 ament_auto_find_build_dependencies()
 
 ###########
@@ -33,8 +49,8 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   DIRECTORY src
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${OpenVINO_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${OpenVINO_LIBS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${OpenVINO_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${OpenVINO_LIBS} ${TENSORRT_LIBRARIES} ${TENSORRT_PLUGIN_LIBRARIES} ${CUDA_LIBRARIES})
 
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN rm_auto_aim::ArmorDetectorNode

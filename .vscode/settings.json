@@ -76,20 +76,28 @@
         "source_location": "cpp",
         "shared_mutex": "cpp",
         "cfenv": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "float8_e4m3.hpp": "c",
+        "__nullptr": "cpp",
+        "valarray": "cpp",
+        "__split_buffer": "cpp",
+        "__hash_table": "cpp",
+        "__tree": "cpp",
+        "filesystem": "cpp",
+        "ios": "cpp"
     },
-    "cmake.sourceDirectory": "/home/ev3rm0re/ros_ws/src/rm_auto_aim/armor_detector",
+    "cmake.sourceDirectory": "/home/ev3rm0re/workspace/ros_workspace/src/rm_auto_aim/armor_detector",
     "python.autoComplete.extraPaths": [
-        "/home/robo03/rm_ws/install/rm_socket_com/lib/python3.10/site-packages",
-        "/home/robo03/rm_ws/install/rm_pyserial/lib/python3.10/site-packages",
-        "/home/robo03/rm_ws/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
+        "/home/ev3rm0re/workspace/ros_workspace/install/rm_socket_com/lib/python3.10/site-packages",
+        "/home/ev3rm0re/workspace/ros_workspace/install/rm_pyserial/lib/python3.10/site-packages",
+        "/home/ev3rm0re/workspace/ros_workspace/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
     "python.analysis.extraPaths": [
-        "/home/robo03/rm_ws/install/rm_socket_com/lib/python3.10/site-packages",
-        "/home/robo03/rm_ws/install/rm_pyserial/lib/python3.10/site-packages",
-        "/home/robo03/rm_ws/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
+        "/home/ev3rm0re/workspace/ros_workspace/install/rm_socket_com/lib/python3.10/site-packages",
+        "/home/ev3rm0re/workspace/ros_workspace/install/rm_pyserial/lib/python3.10/site-packages",
+        "/home/ev3rm0re/workspace/ros_workspace/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ]

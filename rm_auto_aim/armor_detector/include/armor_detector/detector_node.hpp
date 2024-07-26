@@ -31,7 +31,7 @@ class ArmorDetectorNode : public rclcpp::Node
 {
 public:
   ArmorDetectorNode(const rclcpp::NodeOptions & options);
-  std::unique_ptr<YoloDet> yolo;
+  std::unique_ptr<YOLOv8RT> yolo;
 
 private:
   void imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg);
