@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include <fstream>
 
 #include "armor_detector/detector.hpp"
 #include "auto_aim_interfaces/msg/debug_armor.hpp"
