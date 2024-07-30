@@ -38,8 +38,7 @@ private:
   void getParams();
 
   void receiveData();
-  // 创建一个长度为50的队列保存算出来的yaw数据
-  std::queue<float, std::list<float>> yaw_queue;
+
   void sendData(auto_aim_interfaces::msg::Target::SharedPtr msg);
 
   void reopenPort();
