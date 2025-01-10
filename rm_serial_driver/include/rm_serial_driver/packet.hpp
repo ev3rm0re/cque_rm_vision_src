@@ -35,7 +35,7 @@ struct SendPacket
   uint8_t armors_num : 3;  // 2-balance 3-outpost 4-normal
   uint8_t reserved : 1;
   float yaw;
-  float distance;
+  float pitch;
   uint8_t end = 0x0D;
   uint8_t newline = 0x0A;
   // float x;
