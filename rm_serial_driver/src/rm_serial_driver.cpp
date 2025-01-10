@@ -167,6 +167,9 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
     if (abs(packet.yaw) < 0.015 || packet.id == 0) {
       packet.yaw = 0.0;
     }
+    if (abs(packet.pitch) < 0.010 || packet.id == 0) {
+      packet.pitch = 0.0;
+    }
     // packet.x = msg->position.x;
     // packet.y = msg->position.y;
     // packet.z = msg->position.z;
