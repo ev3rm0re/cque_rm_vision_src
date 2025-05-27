@@ -206,6 +206,8 @@ namespace rm_auto_aim
   {
     // The ratio of light (short side / long side)
     float ratio = light.width / light.length;
+    // std::cout << "light.top = " << light.top << ", light.bottom = " << light.bottom << std::endl;
+    // std::cout << "light.width = " << light.width << ", light.length = " << light.length << std::endl;
     bool ratio_ok = l.min_ratio < ratio && ratio < l.max_ratio;
 
     bool angle_ok = light.tilt_angle < l.max_angle;
@@ -350,7 +352,7 @@ namespace rm_auto_aim
     //   cv::circle(img, light.top, 10, cv::Scalar(255, 255, 255), -1);
     //   cv::circle(img, light.bottom, 10, cv::Scalar(255, 255, 255), -1);
     //   auto line_color = light.color == RED ? cv::Scalar(255, 0, 0) : cv::Scalar(0, 0, 255);
-    //   cv::line(img, light.top, light.bottom, line_color, 5);
+    //   cv::line(img, light.top, light.bottom, line_color, 2);
     // }
 
     // Draw armors

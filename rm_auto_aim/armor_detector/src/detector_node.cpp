@@ -209,6 +209,8 @@ std::vector<Armor> ArmorDetectorNode::detectArmors(
   // Convert ROS img to cv::Mat
   auto img = cv_bridge::toCvShare(img_msg, "rgb8")->image;
 
+  cv::flip(img, img, -1);
+
   // Update params
   detector_->binary_thres = get_parameter("binary_thres").as_int();
   detector_->detect_color = get_parameter("detect_color").as_int();
